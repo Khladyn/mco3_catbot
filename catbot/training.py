@@ -7,6 +7,7 @@ from cat_env import make_env
 #############################################################################
 # TODO: YOU MAY ADD ADDITIONAL IMPORTS OR FUNCTIONS HERE.                   #
 #############################################################################
+import csv
 
 # Hyperparameters for Q-Learning
 ALPHA = 0.1  # Learning Rate (Will be decayed)
@@ -51,6 +52,23 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
     current_alpha = ALPHA
     steps_per_episode = []
 
+    stats = []
+    stats.append(cat_name)
+    episode_interval_data = {}
+    episode_interval = 500
+
+    success_count = 0
+    success_rate = 0.0 
+    average_steps = 0
+
+    explorations_per_episode = []
+    exploration_count = 0
+    average_exploration_rate = 0.0
+
+    exploitations_per_episode = []
+    exploitation_count = 0
+    average_exploitation_rate = 0
+
     #############################################################################
     # END OF YOUR CODE. DO NOT MODIFY ANYTHING BEYOND THIS LINE.                #
     #############################################################################
@@ -71,6 +89,8 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
         obs, info = env.reset()
         done = False
         steps = 0
+        exploration_count = 0
+        exploitation_count = 0
 
         max_training_steps = 250
 
@@ -78,11 +98,13 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
             # 2. Decide whether to explore or exploit
             if random.random() < current_epsilon:
                 action = env.action_space.sample()  # Explore
+                exploration_count += 1
             else:
                 # Exploit: Randomly break ties
                 max_q = np.max(q_table[obs])
                 best_actions = np.where(q_table[obs] == max_q)[0]
                 action = random.choice(best_actions)
+                exploitation_count += 1
 
             # 3. Take action and observe
             new_obs, _, terminated, truncated, info = env.step(action)
@@ -113,10 +135,50 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
             if steps >= max_training_steps:
                 done = True
 
+            if terminated:
+                success_count += 1
+
         # --- End of while loop ---
 
+        # Record data
         steps_per_episode.append(steps)
+        explorations_per_episode.append(exploration_count)
+        exploitations_per_episode.append(exploitation_count)
+        if ep % episode_interval == 0:
+            episode_interval_stats = []
 
+            print('------------------')
+            print(f'Episode {ep}')
+            # Record success count and rate
+            success_rate = (success_count / episode_interval) * 100
+            print(f'Success: {success_count} | {success_rate}')
+            episode_interval_stats.append(success_count)
+            episode_interval_stats.append(success_rate)
+            
+            # Record average no. of steps 
+            average_steps = np.mean(steps_per_episode)
+            print(f'Average No. of Steps: {average_steps}')
+            episode_interval_stats.append(average_steps)
+
+            # Record average exploration rate vs exploitation rate
+            average_exploration_rate = np.mean(explorations_per_episode)
+            average_exploitation_rate = np.mean(exploitations_per_episode)
+            print(f'Exploration Average: {average_exploration_rate} | Exploitation Average: {average_exploitation_rate}')
+            episode_interval_stats.append(average_exploration_rate)
+            episode_interval_stats.append(average_exploitation_rate)
+            
+            # Record final epsilon decay at this episode interval
+            print(f'{current_epsilon}')
+            episode_interval_stats.append(current_epsilon)
+            
+            episode_interval_data[ep] = episode_interval_stats
+
+            # Reset env after the interval to get a new set of values
+            success_count = 0
+            steps_per_episode = []
+            explorations_per_episode = []
+            exploitations_per_episode = []
+        
         # Decay hyperparameters
         current_epsilon = max(MIN_EPSILON, current_epsilon * EPSILON_DECAY)
         current_alpha = max(MIN_ALPHA, current_alpha * ALPHA_DECAY)
@@ -131,6 +193,8 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
             play_q_table(viz_env, q_table, max_steps=100, move_delay=0.02,
                          window_title=f"{cat_name}: Training Episode {ep}/{episodes}")
             print('episode', ep)
-
+    
+    print(episode_interval_data)
+    
     # TODO: Remove steps_per_episode from final submission
     return q_table, steps_per_episode
