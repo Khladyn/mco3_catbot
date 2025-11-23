@@ -52,22 +52,12 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
     current_alpha = ALPHA
     steps_per_episode = []
 
-    stats = []
-    stats.append(cat_name)
     episode_interval_data = {}
     episode_interval = 500
 
     success_count = 0
-    success_rate = 0.0 
-    average_steps = 0
-
     explorations_per_episode = []
-    exploration_count = 0
-    average_exploration_rate = 0.0
-
     exploitations_per_episode = []
-    exploitation_count = 0
-    average_exploitation_rate = 0
 
     #############################################################################
     # END OF YOUR CODE. DO NOT MODIFY ANYTHING BEYOND THIS LINE.                #
@@ -161,15 +151,21 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
             episode_interval_stats.append(average_steps)
 
             # Record average exploration rate vs exploitation rate
-            average_exploration_rate = np.mean(explorations_per_episode)
-            average_exploitation_rate = np.mean(exploitations_per_episode)
-            print(f'Exploration Average: {average_exploration_rate} | Exploitation Average: {average_exploitation_rate}')
+            average_exploration_count = np.mean(explorations_per_episode)
+            average_exploration_rate = round((average_exploration_count.item() / average_steps) * 100, 2)
+            episode_interval_stats.append(average_exploration_count)
             episode_interval_stats.append(average_exploration_rate)
+
+            average_exploitation_count = np.mean(exploitations_per_episode)
+            average_exploitation_rate = round((average_exploitation_count.item() / average_steps) * 100, 2)
+            episode_interval_stats.append(average_exploitation_count)
             episode_interval_stats.append(average_exploitation_rate)
+
+            print(f'Exploration Average: {average_exploration_count} ({average_exploration_rate}%) | Exploitation Average: {average_exploitation_count} ({average_exploitation_rate}%)')
             
             # Record final epsilon decay at this episode interval
             print(f'{current_epsilon}')
-            episode_interval_stats.append(current_epsilon)
+            episode_interval_stats.append(round(current_epsilon, 3))
             
             episode_interval_data[ep] = episode_interval_stats
 
@@ -194,7 +190,7 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
                          window_title=f"{cat_name}: Training Episode {ep}/{episodes}")
             print('episode', ep)
     
-    print(episode_interval_data)
+    #print(episode_interval_data)
     
     # TODO: Remove steps_per_episode from final submission
-    return q_table, steps_per_episode
+    return q_table, steps_per_episode, episode_interval_data
