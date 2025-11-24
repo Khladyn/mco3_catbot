@@ -105,9 +105,9 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
             if terminated:
                 reward = 100.0  # Cat caught
             elif env.cat.current_distance < env.cat.prev_distance:
-                reward = 1.0  # Got closer
+                reward = 1.0 * (env.cat.current_distance / 8)  # Got closer with diminishing rewards
             elif env.cat.current_distance > env.cat.prev_distance:
-                reward = -5.0  # Moved farther
+                reward = -10.0 * (env.cat.current_distance / 8)  # Moved farther with diminishing rewards
             else:
                 reward = -0.5  # Stalled
 
@@ -143,20 +143,20 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
             success_rate = (success_count / episode_interval) * 100
             print(f'Success: {success_count} | {success_rate}')
             episode_interval_stats.append(success_count)
-            episode_interval_stats.append(success_rate)
+            episode_interval_stats.append(round(success_rate, 2))
             
             # Record average no. of steps 
-            average_steps = np.mean(steps_per_episode)
+            average_steps = round(np.mean(steps_per_episode), 2)
             print(f'Average No. of Steps: {average_steps}')
             episode_interval_stats.append(average_steps)
 
             # Record average exploration rate vs exploitation rate
-            average_exploration_count = np.mean(explorations_per_episode)
+            average_exploration_count = round(np.mean(explorations_per_episode), 2)
             average_exploration_rate = round((average_exploration_count.item() / average_steps) * 100, 2)
             episode_interval_stats.append(average_exploration_count)
             episode_interval_stats.append(average_exploration_rate)
 
-            average_exploitation_count = np.mean(exploitations_per_episode)
+            average_exploitation_count = round(np.mean(exploitations_per_episode), 2)
             average_exploitation_rate = round((average_exploitation_count.item() / average_steps) * 100, 2)
             episode_interval_stats.append(average_exploitation_count)
             episode_interval_stats.append(average_exploitation_rate)
