@@ -93,9 +93,9 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
             if terminated:
                 reward = 100.0  # Cat caught
             elif env.cat.current_distance < env.cat.prev_distance:
-                reward = 1.0  # Got closer
+                reward = 1.0 * (env.cat.current_distance / 8.0)  # Got closer
             elif env.cat.current_distance > env.cat.prev_distance:
-                reward = -5.0  # Moved farther
+                reward = -10.0 * (env.cat.current_distance / 8.0)  # Moved farther
             else:
                 reward = -0.5  # Stalled
 
