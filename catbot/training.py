@@ -1,9 +1,10 @@
 import random
-from typing import Dict, List, Tuple
+import time
+from typing import Dict
 import numpy as np
+import pygame
 from utility import play_q_table
 from cat_env import make_env
-
 #############################################################################
 # TODO: YOU MAY ADD ADDITIONAL IMPORTS OR FUNCTIONS HERE.                   #
 #############################################################################
@@ -26,11 +27,7 @@ current_alpha = ALPHA
 # END OF YOUR CODE. DO NOT MODIFY ANYTHING BEYOND THIS LINE.                #
 #############################################################################
 
-# TODO: Remove Tuple and List return from final submission
-def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[int]]:
-    # TODO: Override instructions and add global declaration
-    global current_epsilon, current_alpha
-
+def train_bot(cat_name, render: int = -1):
     env = make_env(cat_type=cat_name)
 
     # Initialize Q-table with all possible states (0-9999)
@@ -40,7 +37,7 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
     }
 
     # Training hyperparameters
-    episodes = 5000  # Training is capped at 5000 episodes for this project
+    episodes = 5000 # Training is capped at 5000 episodes for this project
 
     #############################################################################
     # TODO: YOU MAY DECLARE OTHER VARIABLES AND PERFORM INITIALIZATIONS HERE.   #
@@ -128,9 +125,7 @@ def train_bot(cat_name, render: int = -1) -> Tuple[Dict[int, np.ndarray], List[i
         # If rendering is enabled, play an episode every 'render' episodes
         if render != -1 and (ep == 1 or ep % render == 0):
             viz_env = make_env(cat_type=cat_name)
-            play_q_table(viz_env, q_table, max_steps=100, move_delay=0.02,
-                         window_title=f"{cat_name}: Training Episode {ep}/{episodes}")
+            play_q_table(viz_env, q_table, max_steps=100, move_delay=0.02, window_title=f"{cat_name}: Training Episode {ep}/{episodes}")
             print('episode', ep)
 
-    # TODO: Remove steps_per_episode from final submission
-    return q_table, steps_per_episode
+    return q_table
