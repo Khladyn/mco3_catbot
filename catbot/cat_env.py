@@ -317,7 +317,7 @@ class CatChaseEnv(gym.Env):
                 self.agent_sprite.fill((100, 200, 100))
 
         cat_types = {
-            "batmeow": BatmeowCat,          
+            "batmeow": BatmeowCat,
             "mittens": MittensCat,
             "paotsin": PaotsinCat,
             "peekaboo": PeekabooCat,
@@ -421,30 +421,30 @@ class CatChaseEnv(gym.Env):
         current_time = time.time()
         dt = current_time - self.last_render_time
         self.last_render_time = current_time
-        
+
         for i in range(2):
             diff = self.agent_pos[i] - self.agent_visual_pos[i]
             if abs(diff) > 0.01:
                 self.agent_visual_pos[i] += np.clip(diff * self.animation_speed * dt, -1, 1)
-            
+
             if abs(self.agent_bump_offset[i]) > 0.001:
                 self.agent_bump_offset[i] *= max(0, 1 - self.bump_spring * dt)
-        
+
         self.cat.update_visual_pos(dt, self.animation_speed)
-        
+
         old_cat_pos = self.cat.pos.copy()
         if not np.array_equal(old_cat_pos, self.cat.pos):
             for i in range(2):
                 if old_cat_pos[i] == self.cat.pos[i] and (
-                    (old_cat_pos[i] == 0 and self.cat.pos[i] == 0) or 
+                    (old_cat_pos[i] == 0 and self.cat.pos[i] == 0) or
                     (old_cat_pos[i] == self.grid_size - 1 and self.cat.pos[i] == self.grid_size - 1)
                 ):
                     self.cat_bump_offset[i] = self.bump_magnitude if old_cat_pos[i] == self.grid_size - 1 else -self.bump_magnitude
-        
+
         for i in range(2):
             if abs(self.cat_bump_offset[i]) > 0.001:
                 self.cat_bump_offset[i] *= max(0, 1 - self.bump_spring * dt)
-        
+
         cat_x = (self.cat.visual_pos[1] + self.cat_bump_offset[1]) * self.tile_size
         cat_y = (self.cat.visual_pos[0] + self.cat_bump_offset[0]) * self.tile_size
         cat_rect = pygame.Rect(cat_x, cat_y, self.tile_size, self.tile_size)
